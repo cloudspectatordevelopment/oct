@@ -35,10 +35,12 @@ def start_hq(output_dir, config, topic, is_master=True, **kwargs):
     """
     HightQuarter = get_hq_class(config.get('hq_class'))
     hq = HightQuarter(output_dir, config, topic, **kwargs)
+    print("Setup HQ")
     hq.setup()
     if is_master:
         hq.wait_turrets(config.get("min_turrets", 1))
     hq.run()
+    print("Tear down HQ")
     hq.tear_down()
 
 

@@ -97,8 +97,8 @@ class HightQuarter(object):
                 self.turrets_manager.process_message(ujson.loads(data))
 
     def _print_status(self, elapsed):
-        display = 'turrets: {}, elapsed: {}  messages received: {}\r'
-        print(display.format(len(self.turrets_manager.turrets), round(elapsed), self.messages,), end='')
+        display = 'turrets: {}/{}, elapsed: {}  messages received: {}\r'
+        print(display.format(self.turrets_manager.finished_count, len(self.turrets_manager.turrets), round(elapsed), self.messages,), end='')
 
     def _clean_queue(self):
         try:
@@ -144,8 +144,8 @@ class HightQuarter(object):
 
         while elapsed <= run_time:
             try:
-                self._run_loop_action()
                 self._print_status(elapsed)
+                self._run_loop_action()
                 elapsed = t() - start_time
             except (Exception, KeyboardInterrupt):
                 print("\nStopping test, sending stop command to turrets")
@@ -153,9 +153,14 @@ class HightQuarter(object):
                 self.stats_handler.write_remaining()
                 traceback.print_exc()
                 break
+            if self.turrets_manager.finished_count == self.config['min_turrets']:
+                break
 
         self.turrets_manager.stop()
-        print("\n\nProcessing all remaining messages... This could take time depending on message volume")
+        while self.turrets_manager.finished_count < self.config['min_turrets']:
+            self._run_loop_action()
+            print('\nWait %s/%s turret(s) to finish.' % (self.turrets_manager.finished_count, self.config['min_turrets']), end='')
+        print("\nProcessing all remaining messages... This could take time depending on message volume")
         t = time.time()
         self.result_collector.unbind(self.result_collector.LAST_ENDPOINT)
         self._clean_queue()

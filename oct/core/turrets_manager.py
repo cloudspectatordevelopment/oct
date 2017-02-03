@@ -20,6 +20,7 @@ class TurretsManager(object):
     def __init__(self, publish_port, master=True):
         self.turrets = {}
         self.master = master
+        self.finished_count = 0
 
         if master:
             context = zmq.Context()
@@ -93,6 +94,8 @@ class TurretsManager(object):
         turret = self.turrets[turret_data.get('uuid')]
         turret.update(**turret_data)
         self.write(turret)
+        if turret_data['status'] == 'finished':
+            self.finished_count += 1
         return True
 
     def write(self, turret):
