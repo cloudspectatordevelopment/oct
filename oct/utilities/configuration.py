@@ -69,7 +69,8 @@ def configure_for_turret(project_name, config_file):
         'hq_address': config.get('hq_address', '127.0.0.1'),
         'hq_publisher': config.get('publish_port', 5000),
         'hq_rc': config.get('rc_port', 5001),
-        'turrets_requirements': config.get('turrets_requirements', [])
+        'turrets_requirements': config.get('turrets_requirements', []),
+        'time_based': True
     }
     configs = []
     for turret in config['turrets']:

@@ -142,14 +142,15 @@ class HightQuarter(object):
         self.turrets_manager.start(self.transaction_context)
         self.started = True
 
-        while elapsed <= run_time:
+        while True:
+            if self.config['time_based'] and elapsed <= run_time:
+                break
             try:
                 self._print_status(elapsed)
                 self._run_loop_action()
                 elapsed = t() - start_time
             except (Exception, KeyboardInterrupt):
                 print("\nStopping test, sending stop command to turrets")
-                self.turrets_manager.stop()
                 self.stats_handler.write_remaining()
                 traceback.print_exc()
                 break
@@ -157,9 +158,14 @@ class HightQuarter(object):
                 break
 
         self.turrets_manager.stop()
-        while self.turrets_manager.finished_count < self.config['min_turrets']:
-            self._run_loop_action()
-            print('\nWait %s/%s turret(s) to finish.' % (self.turrets_manager.finished_count, self.config['min_turrets']), end='')
+
+        try:
+            while self.turrets_manager.finished_count < self.config['min_turrets']:
+                self._run_loop_action()
+                print('\nWait %s/%s turret(s) to finish.' % (self.turrets_manager.finished_count, self.config['min_turrets']), end='')
+        except (Exception, KeyboardInterrupt):
+            pass
+
         print("\nProcessing all remaining messages... This could take time depending on message volume")
         t = time.time()
         self.result_collector.unbind(self.result_collector.LAST_ENDPOINT)
